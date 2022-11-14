@@ -25,6 +25,8 @@ When running the program, it will ask you for three things.
 Wait for it to finish and parse all the .meta files and find all appropriate references. Might take a while depending on the size of either projects.
 Although, if you choose to run the program again after it completes, it will read from memory. Meaning if you wanna convert multiple prefabs from the same origin project it should be much faster than the first time.
 
+When its done, itll create a folder called "FinalConversion" in the same directory the jar is in. You can rename that to whatever and drag that into your destination project and it should work.
+
 # Usecases
 This was mainly made for BONELAB modding to convert prefab files from rips of the game to extended SDK friendly prefabs. (So people can have access to these things without needing an entire rip of the game + shorter build times)
 
