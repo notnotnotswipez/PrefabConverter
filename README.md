@@ -29,3 +29,8 @@ Im sure there are more instances where you would need to make a prefab support a
 
 Go nuts! Do alot!
 Make things for people! Make things more accessible! It benefits the entire modding community.
+
+# PRs or Contributions
+There are alot of things im sure can be made better, this was made fairly quickly just cause I was annoyed. PRs are welcome!
+
+Textures as of now do not get copied over to the conversion folder because the program only copies over whats referenced on the prefab directly, materials are referenced directly, but the textures are referenced within the material, so they do not get copied over.
