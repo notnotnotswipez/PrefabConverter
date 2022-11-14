@@ -1,4 +1,7 @@
 # PrefabConverter
+THIS PROJECT WAS MADE WITH JAVA 17, IT WILL NOT RUN IF YOU HAVE A VERSION OF JAVA LOWER THAN JAVA 17+, YOU CAN DOWNLOAD JAVA 17 HERE: https://www.oracle.com/java/technologies/downloads/#jdk17-windows
+
+
 Ever had a prefab that works for one project, and when copying that prefab over to another project which SHOULD have all the content (Scripts, other object references, etc.) 
 on that prefab, it just doesnt reassign all the references? (Because thats not really how that works but whatever) 
 
