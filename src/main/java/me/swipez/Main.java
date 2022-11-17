@@ -19,6 +19,8 @@ public class Main {
     public static String prefabOriginAssets;
     public static String prefabConversionAssets;
     public static HashMap<String, String> guidMap = new HashMap<>();
+    public static HashMap<String, String> destinationMap = new HashMap<>();
+    public static List<GUIDFile> cachedTextureFiles = new ArrayList<>();
 
     public static void main(String[] args) {
         logger = Logger.getLogger(Main.class.getName());
@@ -51,6 +53,7 @@ public class Main {
     }
 
     private static void runProgram() throws FileNotFoundException {
+        cachedTextureFiles = new ArrayList<>();
 
         File mainDirectory = new File(System.getProperty("user.dir"));
 
@@ -89,20 +92,22 @@ public class Main {
         // Convert the prefab to a string
         prefabString = builder.toString();
 
-        logger.info("Please input the directory of the assets folder of the project this prefab CAME FROM:");
+        if (guidMap.isEmpty()){
+            logger.info("Please input the directory of the assets folder of the project this prefab CAME FROM:");
 
-        try {
-            prefabOriginAssets = readInput();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+            try {
+                prefabOriginAssets = readInput();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-        logger.info("Please input the directory of the assets folder of the project you want the prefab to CONVERT TO:");
+            logger.info("Please input the directory of the assets folder of the project you want the prefab to CONVERT TO:");
 
-        try {
-            prefabConversionAssets = readInput();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+            try {
+                prefabConversionAssets = readInput();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         logger.info("Prefab text: "+prefabString);
@@ -134,11 +139,39 @@ public class Main {
             }
         }
 
+        for (GUIDFile guidFile : foundGuids) {
+            if (guidFile.metaFile != null){
+                File file = guidFile.metaFile;
+                if (file.getName().contains(".mat")){
+                    logger.info("Found material file: "+file.getName());
+                    cachedTextureFiles.addAll(getTextureGUIDs(new File(file.getPath().replace(".meta", ""))));
+                }
+            }
+        }
 
         logger.info("Linked all meta files to their respective references!");
 
         logger.info("STARTING CONVERSION PROCESS...");
-        recursiveMetaReplace(new File(prefabConversionAssets), foundGuids);
+        if (destinationMap.isEmpty()){
+            logger.info("Storing destination map to memory...");
+            recursiveMetaReplace(new File(prefabConversionAssets), foundGuids);
+        }
+
+        for (GUIDFile guidFile : foundGuids) {
+            if (guidFile.metaFile != null){
+                if (destinationMap.containsKey(guidFile.metaFile.getName())){
+                    File file = new File(destinationMap.get(guidFile.metaFile.getName()));
+                    String properName = guidFile.metaFile.getName().replace(".meta", "");
+                    String newGuid = getGUID(file);
+                    String newProperName = file.getName().replace(".meta", "");
+                    if (properName.equals(newProperName)) {
+                        prefabString = prefabString.replace(guidFile.guid, newGuid);
+                        guidFile.wasConverted = true;
+                        logger.info("Replaced reference to: " + newProperName);
+                    }
+                }
+            }
+        }
 
         logger.info("Finished replacement of scripts.");
 
@@ -169,6 +202,13 @@ public class Main {
 
         logger.info("Copying necessary assets");
 
+        for (GUIDFile guidFile : cachedTextureFiles) {
+            File file = new File(guidMap.get(guidFile.guid));
+            guidFile.setFile(file);
+            logger.info("Copying texture file: "+file.getName());
+        }
+
+        foundGuids.addAll(cachedTextureFiles);
 
         for (GUIDFile remaining : foundGuids) {
             try {
@@ -240,18 +280,7 @@ public class Main {
                 recursiveMetaReplace(file, originals);
             } else if (file.getName().endsWith(".meta")) {
                 logger.info("Found meta file in destination proj: " + file.getName());
-                for (GUIDFile guidFile : originals) {
-                    if (guidFile.metaFile != null){
-                        String properName = guidFile.metaFile.getName().replace(".meta", "");
-                        String newGuid = getGUID(file);
-                        String newProperName = file.getName().replace(".meta", "");
-                        if (properName.equals(newProperName)) {
-                            prefabString = prefabString.replace(guidFile.guid, newGuid);
-                            guidFile.wasConverted = true;
-                            logger.info("Replaced reference to: " + newProperName);
-                        }
-                    }
-                }
+                destinationMap.put(file.getName(), file.getPath());
             }
         }
     }
@@ -273,6 +302,42 @@ public class Main {
                 }
             }
         }
+    }
+
+    private static List<GUIDFile> getTextureGUIDs(File file) throws FileNotFoundException {
+        BufferedReader reader = new BufferedReader(new InputStreamReader( new FileInputStream(file)));
+        String line;
+        StringBuilder builder = new StringBuilder();
+        try {
+            while ((line = reader.readLine()) != null) {
+                builder.append(line).append(System.lineSeparator());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String prefabString = builder.toString();
+        List<GUIDFile> foundGuids = new ArrayList<>();
+
+        try {
+            int index = 0;
+            while (prefabString.substring(index).contains("guid: ")) {
+                int guidStart = prefabString.indexOf("guid: ", index + 1);
+                boolean isTexture = prefabString.substring(guidStart - 32, guidStart).contains("m_Texture");
+                index = guidStart + 5;
+                if (isTexture){
+                    String guid = prefabString.substring(guidStart + 6, guidStart + 6 + 32);
+                    foundGuids.add(new GUIDFile(guidStart, guid));
+                    logger.info("Found texture GUID: " + guid);
+                }
+            }
+        }
+        catch (Exception exception){
+            logger.info(exception.toString());
+        }
+
+
+        return foundGuids;
     }
 
     public static String readInput() throws IOException {
