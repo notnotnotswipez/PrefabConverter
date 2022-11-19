@@ -10,11 +10,7 @@ contains a converted prefab with correct references and all of its directly rela
 prefabs source project but not in the destination one.
 
 # Setup
-1) Download this program and make sure to put it in its own empty folder.
-2) Make a .bat file in that same folder to run the program, run text is below.
-```
-java -jar PrefabConverter-1.0-SNAPSHOT.jar
-```
+Download the zip from releases and run the run.bat
 
 # How To Use
 When running the program, it will ask you for three things.
