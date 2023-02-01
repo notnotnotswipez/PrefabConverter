@@ -16,7 +16,7 @@ Download the zip from releases and run the run.bat
 When running the program, it will ask you for three things.
 1) The filepath of the prefab you want to convert.
 2) The filepath of the assets folder the prefab CAME FROM.
-3) The filepath of the asssets folder you want the prefab to be CONVERTED TO.
+3) The filepath of the assets folder you want the prefab to be CONVERTED TO.
 
 Wait for it to finish and parse all the .meta files and find all appropriate references. Might take a while depending on the size of either projects.
 Although, if you choose to run the program again after it completes, it will read from memory. Meaning if you wanna convert multiple prefabs from the same origin project/destination project it should be almost immediate.
